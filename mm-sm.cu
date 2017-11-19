@@ -234,8 +234,8 @@ __global__ void MatMulKernel(Matrix A, Matrix B, Matrix C) {
 
 void work()
 {
-	Matrix a, b, result1, result2;
-	matrix a_seq, b_seq;
+	Matrix a, b, result2;
+	matrix a_seq, b_seq, result1;
 	long long before, after;
 	int correct, i, j, dim;
 	cudaError_t rc;
