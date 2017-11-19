@@ -24,6 +24,11 @@ typedef struct {
     float* elements;
 } Matrix;
 
+typedef struct
+{
+	float ** element;
+} matrix;
+
 
 __device__ float GetElement(const Matrix A, int row, int col) {
     return A.elements[row * A.stride + col];
@@ -58,28 +63,31 @@ long long wall_clock_time()
 
 void allocate_matrix(Matrix* m)
 {
-
 	m->elements = (float*)malloc(size * size * sizeof(float));
+}
 
-
-	// int i;
-	// m->elements = (float**)malloc(sizeof(float*) * size);
-	// if (m->elements == NULL)
-	// {
-	// 	fprintf(stderr, "Out of memory\n");
-	// 	exit(1);
-	// }
+void allocate_matrix_seq(matrix* m)
+{
+	int i;
 	
-	// // allocate an array for each row of the matrix
-	// for (i = 0; i < size; i++)
-	// {
-	// 	m->elements[i] = (float*)malloc(sizeof(float) * size);
-	// 	if (m->elements[i] == NULL)
-	// 	{
-	// 		fprintf(stderr, "Out of memory\n");
-	// 		exit(1);
-	// 	}
-	// }
+	// allocate array for all the rows
+	m->element = (float**)malloc(sizeof(float*) * size);
+	if (m->element == NULL)
+	{
+		fprintf(stderr, "Out of memory\n");
+		exit(1);
+	}
+	
+	// allocate an array for each row of the matrix
+	for (i = 0; i < size; i++)
+	{
+		m->element[i] = (float*)malloc(sizeof(float) * size);
+		if (m->element[i] == NULL)
+		{
+			fprintf(stderr, "Out of memory\n");
+			exit(1);
+		}
+	}
 }
 
 /**
@@ -108,15 +116,29 @@ void init_matrix(Matrix m)
 	for (i = 0; i < size*size; i++) {
 		m.elements[i] = rand() % 10;
 	}
+	
+}
 
-	// int i, j;
+void init_matrix_seq(matrix m)
+{
+	int i, j;
 	
-	// for (i = 0; i < size; i++)
-	// 	for (j = 0; j < size; j++)
-	// 	{
-	// 		m.elements[i][j] = rand() % 10;
-	// 	}
-	
+	for (i = 0; i < size; i++)
+		for (j = 0; j < size; j++)
+		{
+			m.element[i][j] = rand() % 10;
+		}
+}
+
+void mm(matrix a, matrix b, matrix result)
+{
+	int i, j, k;
+
+	// Do the multiplication
+	for (i = 0; i < size; i++)
+		for (j = 0; j < size; j++)
+			for(k = 0; k < size; k++)
+				result.element[i][j] += a.element[i][k] * b.element[k][j];    
 }
 
 
@@ -213,6 +235,7 @@ __global__ void MatMulKernel(Matrix A, Matrix B, Matrix C) {
 void work()
 {
 	Matrix a, b, result1, result2;
+	matrix a_seq, b_seq;
 	long long before, after;
 	int correct, i, j, dim;
 	cudaError_t rc;
@@ -220,24 +243,53 @@ void work()
 	// Allocate memory for matrices
 	allocate_matrix(&a);
 	allocate_matrix(&b);
-	allocate_matrix(&result1);
-	allocate_matrix(&result2);	
+	allocate_matrix(&result2);
+
+	allocate_matrix_seq(&a_seq);
+	allocate_matrix_seq(&b_seq);
+	allocate_matrix_seq(&result1);
 
 	// Initialize matrix elements
 	init_matrix(a);
 	init_matrix(b);
+
+	init_matrix_seq(a_seq);
+	init_matrix_seq(b_seq);
+
+	// Perform SEQ matrix  multiplication
+	before = wall_clock_time();
+	mm(a_seq, b_seq, result1);
+	after = wall_clock_time();
+        fprintf(stderr, "Sequential matrix multiplication took %1.2f seconds\n", ((float)(after - before))/1000000000);
 
 	// Perform CUDA matrix  multiplication
 	before = wall_clock_time();
 	MatMul(a, b, result2);
 	cudaDeviceSynchronize();
 	after = wall_clock_time();
-	fprintf(stderr, "Matrix multiplication on GPU took %1.2f seconds\n", ((float)(after - before))/1000000000);
+	fprintf(stderr, "CUDA matrix multiplication on GPU took %1.2f seconds\n", ((float)(after - before))/1000000000);
 
 	// was there any error?
         rc = cudaGetLastError();
         if (rc != cudaSuccess)
                 printf("Last CUDA error %s\n", cudaGetErrorString(rc));
+
+    // Compare the results
+    int v = 0;
+	correct = 1;
+	for (i = 0; correct && i < size; i++)
+		for (j = 0; j < size; j++) {
+			if (result1.element[i][j] != result2.element[v]) {
+				correct = 0;
+				break;
+			}
+			v++;
+		}
+
+	if (correct)
+		printf("The result matrices are identical!\n");
+	else
+		printf("Difference in result matrices at element (%d, %d)!\n", i, j);
 
 	// free_matrix(&a);
 	// free_matrix(&b);
