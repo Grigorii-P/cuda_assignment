@@ -120,7 +120,8 @@ void MatMul(const Matrix A, const Matrix B, Matrix C)
     d_A.height = A.height;
     size_t size = A.width * A.height * sizeof(float);
     cudaMalloc(&d_A.elements, size);
-    cudaMemcpy(d_A.elements, A.elements, size, Matrix d_B; cudaMemcpyHostToDevice);
+    cudaMemcpy(d_A.elements, A.elements, size, cudaMemcpyHostToDevice);
+    Matrix d_B;
     d_B.stride = B.width;
     d_B.width = d_B.stride; 
     d_B.height = B.height;
