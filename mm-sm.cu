@@ -21,7 +21,7 @@ typedef struct {
     int width;
     int height;
     int stride;
-    float** elements;
+    float* elements;
 } Matrix;
 
 
@@ -58,26 +58,28 @@ long long wall_clock_time()
 
 void allocate_matrix(Matrix* m)
 {
-	int i;
+
+	m->elements = (float*)malloc(size * size * sizeof(float));
+
+
+	// int i;
+	// m->elements = (float**)malloc(sizeof(float*) * size);
+	// if (m->elements == NULL)
+	// {
+	// 	fprintf(stderr, "Out of memory\n");
+	// 	exit(1);
+	// }
 	
-	// allocate array for all the rows
-	m->elements = (float**)malloc(sizeof(float*) * size);
-	if (m->elements == NULL)
-	{
-		fprintf(stderr, "Out of memory\n");
-		exit(1);
-	}
-	
-	// allocate an array for each row of the matrix
-	for (i = 0; i < size; i++)
-	{
-		m->elements[i] = (float*)malloc(sizeof(float) * size);
-		if (m->elements[i] == NULL)
-		{
-			fprintf(stderr, "Out of memory\n");
-			exit(1);
-		}
-	}
+	// // allocate an array for each row of the matrix
+	// for (i = 0; i < size; i++)
+	// {
+	// 	m->elements[i] = (float*)malloc(sizeof(float) * size);
+	// 	if (m->elements[i] == NULL)
+	// 	{
+	// 		fprintf(stderr, "Out of memory\n");
+	// 		exit(1);
+	// 	}
+	// }
 }
 
 /**
@@ -96,14 +98,19 @@ void free_matrix(Matrix* m) {
  **/
 void init_matrix(Matrix m)
 {
-	int i, j;
-	
-	for (i = 0; i < size; i++)
-		for (j = 0; j < size; j++)
-		{
-			m.elements[i][j] = rand() % 10;
-		}
 	m.stride = STRIDE;
+	for (i = 0; i < size*size; i++) {
+		m.elements[i] = rand() % 10;
+	}
+
+	// int i, j;
+	
+	// for (i = 0; i < size; i++)
+	// 	for (j = 0; j < size; j++)
+	// 	{
+	// 		m.elements[i][j] = rand() % 10;
+	// 	}
+	
 }
 
 
