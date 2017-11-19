@@ -239,10 +239,10 @@ void work()
         if (rc != cudaSuccess)
                 printf("Last CUDA error %s\n", cudaGetErrorString(rc));
 
-	free_matrix(&a);
-	free_matrix(&b);
-	free_matrix(&result1);
-	free_matrix(&result2);
+	// free_matrix(&a);
+	// free_matrix(&b);
+	// free_matrix(&result1);
+	// free_matrix(&result2);
 }
 
 
