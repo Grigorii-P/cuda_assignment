@@ -106,6 +106,55 @@ void init_matrix(Matrix m)
 	m.stride = STRIDE;
 }
 
+/**
+ * Initializes the elements of the matrix with
+ * element 0.
+ **/
+void init_matrix_zero(matrix m)
+{
+	int i, j;
+	
+	for (i = 0; i < size; i++)
+		for (j = 0; j < size; j++)
+		{
+			m.elements[i][j] = 0.0;
+		}
+}
+
+
+/**
+ * Multiplies matrix @a with matrix @b storing
+ * the result in matrix @result
+ * 
+ * The multiplication algorithm is the O(n^3) 
+ * algorithm
+ */
+void mm(matrix a, matrix b, matrix result)
+{
+	int i, j, k;
+	
+	// Do the multiplication
+	for (i = 0; i < size; i++)
+		for (j = 0; j < size; j++)
+			for(k = 0; k < size; k++)
+				result.element[i][j] += a.element[i][k] * b.element[k][j];
+}
+
+/**
+ * Each kernel computes the result element (i,j).
+ */
+__global__ void mm_kernel(matrix a, matrix b, matrix result, int size)
+{
+	int i = blockIdx.x * blockDim.x + threadIdx.x; 
+	int j = blockIdx.y * blockDim.y + threadIdx.y;
+	int k;
+
+	if (i >= size || j >= size)
+		return;
+
+	for(k = 0; k < size; k++)
+		result.element[i][j] += a.element[i][k] * b.element[k][j];
+}
 
 __global__ void MatMulKernel(const Matrix, const Matrix, Matrix);
 
@@ -196,6 +245,23 @@ __global__ void MatMulKernel(Matrix A, Matrix B, Matrix C) {
 }
 
 
+
+
+void print_matrix(matrix m)
+{
+	int i, j;
+	
+	for (i = 0; i < size; i++)
+	{
+		printf("row %4d: ", i);
+		for (j = 0; j < size; j++)
+			printf("%6.2f  ", m.elements[i][j]);
+		printf("\n");
+	}
+}
+
+
+
 void work()
 {
 	Matrix a, b, result1, result2;
@@ -213,6 +279,12 @@ void work()
 	init_matrix(a);
 	init_matrix(b);
 
+	// Perform sequential matrix multiplication
+	before = wall_clock_time();
+	mm(a, b, result1);
+	after = wall_clock_time();
+        fprintf(stderr, "Matrix multiplication on CPU took %1.2f seconds\n", ((float)(after - before))/1000000000);
+
 	// Perform CUDA matrix  multiplication
 	before = wall_clock_time();
 	MatMul(a, b, result2);
@@ -224,6 +296,20 @@ void work()
         rc = cudaGetLastError();
         if (rc != cudaSuccess)
                 printf("Last CUDA error %s\n", cudaGetErrorString(rc));
+
+	// Compare the results
+	correct = 1;
+	for (i = 0; correct && i < size; i++)
+		for (j = 0; j < size; j++)
+			if (result1.element[i][j] != result2.element[i][j]) {
+				correct = 0;
+				break;
+			}
+
+	if (correct)
+		printf("The result matrices are identical!\n");
+	else
+		printf("Difference in result matrices at element (%d, %d)!\n", i, j);
 
 	free_matrix(&a);
 	free_matrix(&b);
