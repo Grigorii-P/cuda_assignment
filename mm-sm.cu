@@ -85,16 +85,16 @@ void allocate_matrix(Matrix* m)
 /**
  * Free the memory allocated for a matrix.
  **/
-void free_matrix(Matrix* m) {
-	int i;
-	for (i = 0; i < size*size; i++)
-		cudaFree(m->elements[i]);
+// void free_matrix(Matrix* m) {
+// 	int i;
+// 	for (i = 0; i < size*size; i++)
+// 		cudaFree(m->elements[i]);
 
-	// int i;
-	// for (i = 0; i < size; i++)
-	// 	cudaFree(m->elements[i]);
-	// cudaFree(m->elements);
-}
+// 	// int i;
+// 	// for (i = 0; i < size; i++)
+// 	// 	cudaFree(m->elements[i]);
+// 	// cudaFree(m->elements);
+// }
 
 /**
  * Initializes the elements of the matrix with
