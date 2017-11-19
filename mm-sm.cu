@@ -15,7 +15,7 @@
 #define BLOCK_SIZE 32
 #define STRIDE BLOCK_SIZE
 
-int size;
+int input_size;
 
 typedef struct {
     int width;
@@ -63,7 +63,7 @@ long long wall_clock_time()
 
 void allocate_matrix(Matrix* m)
 {
-	m->elements = (float*)malloc(size * size * sizeof(float));
+	m->elements = (float*)malloc(input_size * input_size * sizeof(float));
 }
 
 void allocate_matrix_seq(matrix* m)
@@ -71,7 +71,7 @@ void allocate_matrix_seq(matrix* m)
 	int i;
 	
 	// allocate array for all the rows
-	m->element = (float**)malloc(sizeof(float*) * size);
+	m->element = (float**)malloc(sizeof(float*) * input_size);
 	if (m->element == NULL)
 	{
 		fprintf(stderr, "Out of memory\n");
@@ -79,9 +79,9 @@ void allocate_matrix_seq(matrix* m)
 	}
 	
 	// allocate an array for each row of the matrix
-	for (i = 0; i < size; i++)
+	for (i = 0; i < input_size; i++)
 	{
-		m->element[i] = (float*)malloc(sizeof(float) * size);
+		m->element[i] = (float*)malloc(sizeof(float) * input_size);
 		if (m->element[i] == NULL)
 		{
 			fprintf(stderr, "Out of memory\n");
@@ -113,7 +113,7 @@ void init_matrix(Matrix m)
 	m.stride = STRIDE;
 
 	int i;
-	for (i = 0; i < size*size; i++) {
+	for (i = 0; i < input_size*input_size; i++) {
 		m.elements[i] = rand() % 10;
 	}
 	
@@ -123,8 +123,8 @@ void init_matrix_seq(matrix m)
 {
 	int i, j;
 	
-	for (i = 0; i < size; i++)
-		for (j = 0; j < size; j++)
+	for (i = 0; i < input_size; i++)
+		for (j = 0; j < input_size; j++)
 		{
 			m.element[i][j] = rand() % 10;
 		}
@@ -135,9 +135,9 @@ void mm(matrix a, matrix b, matrix result)
 	int i, j, k;
 
 	// Do the multiplication
-	for (i = 0; i < size; i++)
-		for (j = 0; j < size; j++)
-			for(k = 0; k < size; k++)
+	for (i = 0; i < input_size; i++)
+		for (j = 0; j < input_size; j++)
+			for(k = 0; k < input_size; k++)
 				result.element[i][j] += a.element[i][k] * b.element[k][j];    
 }
 
@@ -277,8 +277,8 @@ void work()
     // Compare the results
     int v = 0;
 	correct = 1;
-	for (i = 0; correct && i < size; i++)
-		for (j = 0; j < size; j++) {
+	for (i = 0; correct && i < input_size; i++)
+		for (j = 0; j < input_size; j++) {
 			if (result1.element[i][j] != result2.elements[v]) {
 				correct = 0;
 				break;
@@ -305,11 +305,11 @@ int main(int argc, char ** argv)
 	printf("Usage: %s <size>\n", argv[0]);
     
 	if (argc >= 2)
-		size = atoi(argv[1]);
+		input_size = atoi(argv[1]);
 	else
-		size = 1024;
+		input_size = 1024;
 		
-	fprintf(stderr,"Sequential matrix multiplication of size %d\n", size);
+	fprintf(stderr,"Sequential matrix multiplication of size %d\n", input_size);
     
 	// Multiply the matrices
 	work();
