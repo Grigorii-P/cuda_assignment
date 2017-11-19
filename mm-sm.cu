@@ -279,7 +279,7 @@ void work()
 	correct = 1;
 	for (i = 0; correct && i < size; i++)
 		for (j = 0; j < size; j++) {
-			if (result1.element[i][j] != result2.element[v]) {
+			if (result1.element[i][j] != result2.elements[v]) {
 				correct = 0;
 				break;
 			}
