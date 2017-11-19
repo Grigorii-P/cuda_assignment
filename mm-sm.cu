@@ -87,9 +87,13 @@ void allocate_matrix(Matrix* m)
  **/
 void free_matrix(Matrix* m) {
 	int i;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < size*size; i++)
 		cudaFree(m->elements[i]);
-	cudaFree(m->elements);
+
+	// int i;
+	// for (i = 0; i < size; i++)
+	// 	cudaFree(m->elements[i]);
+	// cudaFree(m->elements);
 }
 
 /**
@@ -99,6 +103,8 @@ void free_matrix(Matrix* m) {
 void init_matrix(Matrix m)
 {
 	m.stride = STRIDE;
+
+	int i;
 	for (i = 0; i < size*size; i++) {
 		m.elements[i] = rand() % 10;
 	}
